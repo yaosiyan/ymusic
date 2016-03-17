@@ -23,7 +23,7 @@ def handler(trainfile, testfile):
             userAvg[lastUsedid] = rating_sum  # 保存上一个usedid的评分总数
             lastUsedid = usedid  # 更新lastUsedid
             rating_sum = rating  # 初始化rating_sum
-    del userAvg[-1]  # 无语了
+    del userAvg[-1]  # ???无语了
     for userid in userAvg:
         userAvg[userid] = userAvg[userid] / float(len(userRatingDic[userid]))
         print userid, userAvg[userid]
