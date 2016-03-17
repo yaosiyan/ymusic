@@ -37,8 +37,18 @@ halfSimDict = {}
 userInfo = {}
 
 
-def pearson_corr(user1, user2, user_item_rating_Dic, threshold=100):  # threshold:至少100首歌共同评分
-    # 相似度矩阵只需要计算一半!!!
+def pearson_corr(user1, user2, user_item_rating_Dic, threshold):
+    """
+    :param user1: usedid1(int)
+    :param user2: usedid2(int)
+    :param user_item_rating_Dic: {usedid:{track1:90,track2:0},usedid2:{}}
+    :param threshold: 阈值,两个用户至少xx首歌共同评分才计算相似度
+    :return: pearson相似度
+
+    """
+    """
+        [注意!]相似度矩阵只需要计算一半!!!
+    """
     try:
         sim = halfSimDict[user2][user1]
     except KeyError:
@@ -60,7 +70,7 @@ def pearson_corr(user1, user2, user_item_rating_Dic, threshold=100):  # threshol
             both_rated.append(item)
     number_of_ratings = len(both_rated)
 
-    # Checking for number of ratings in common
+    # Checking for number of ratings in common 如果共同评分数小于阈值,不考虑
     if number_of_ratings == 0 or number_of_ratings < threshold:
         return 0
 
@@ -104,16 +114,18 @@ def pearson_corr(user1, user2, user_item_rating_Dic, threshold=100):  # threshol
         return r
 
 
-def most_similar_users(user, user_item_rating_Dic, userInfoDict, K=50):
-    # K 默认为50 后续进行参数调整 绘图
-    # returns the K (similar users) for a given specific user
+def most_similar_users(user, user_item_rating_Dic, userInfoDict, K=100):
+    """
+    :param user:usedid
+    :param user_item_rating_Dic:{usedid:{track1:90,track2:0},usedid2:{}}
+    :param userInfoDict:{usedid:trackRatingCount} 每个用户的评分数目
+    :param K: K近邻 (默认为100,后续进行参数调整/绘图)
+    :return:(sim,otherUserid) 元组
+    """
     '''
-    考虑到实际数据中有很多pearsonr = 1.0
-    只需要保存K名 pearsonr = 1.0的usedid
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    [注意]!!
-    相似的用户只需要计算一遍就可以了!!!保存KNN!!!!!!
-
+        考虑到实际数据中有很多pearsonr = 1.0
+        只需要保存K名 pearsonr = 1.0的usedid
+        [注意!]相似的用户只需要计算一遍就可以了!!!保存KNN!!!!!
     '''
     if userKNNDic.has_key(user):
         print 'userKNN found!',user
@@ -122,12 +134,12 @@ def most_similar_users(user, user_item_rating_Dic, userInfoDict, K=50):
     scores = []
     tempList = []  # 存放r>0.6的相似度
     cnt1 = 0  # 1.0出现次数
-    threshold = 0
+    coverThreshold = 0
     for other_user in user_item_rating_Dic:
         if other_user == user:continue
         ratingCount = userInfoDict[user]  # 用户的评分数
-        threshold = int(ratingCount*0.3)  # 至少评分歌曲数的1/3有重叠才计算pearsonr
-        r = pearson_corr(user, other_user, user_item_rating_Dic, threshold)  # 100:threshold,调整参数
+        coverThreshold = int(ratingCount * 0.3)  # 至少评分歌曲数的1/3有重叠才计算pearsonr
+        r = pearson_corr(user, other_user, user_item_rating_Dic, coverThreshold)  # threshold,调整参数
         if r == 1.0:  # 或者r>0.8??
             scores.append((r, other_user))
             cnt1 += 1
@@ -149,16 +161,29 @@ def most_similar_users(user, user_item_rating_Dic, userInfoDict, K=50):
     # if len(scores) <= K:  # 如果小于k，只选择这些做推荐。
     #     return scores
     # else:  # 如果>k,截取k个用户，注意返回的是元组(pearsonr,usedid)
-    #     return scores[0:K]
+    #     return scores[0:K],
     userKNNDic[user] = scores
     logging.info(str(user)+' knn:'+str(scores))
     return scores
 
 
 def recommendation(usedid, trackid, userAvg, user_track_rating, userInfoDict):
+    """
+    :param usedid:  用户id(int)
+    :param trackid: 歌曲id(int)
+    :param userAvg: 用户评分均值(dict) {usedid:13.3333}
+    :param user_track_rating: {usedid:{track1:90,track2:0},usedid2:{}}
+    :param userInfoDict:{usedid:trackRatingCount} 每个用户的评分数目
+    :return: rating(float) 预测评分值
+    """
+    """
+        1:调整KNN中的K值
+        2:
+
+    """
     simSum = 0.0
     weightedAverage = 0.0
-    KNN = most_similar_users(usedid, user_track_rating, userInfoDict, 300)  # K调整试验！！！！！！,KNN=(sim,usedid)
+    KNN = most_similar_users(usedid, user_track_rating, userInfoDict, 300)
     averageOfUser = userAvg[usedid]
     for sim, another in KNN:
         averageOfAnother = userAvg[another]  # 另一个用户的打分均值
@@ -202,7 +227,7 @@ if __name__ == '__main__':
     f1 = open(dataPath + 'dumps_userRatingDic.txt', 'rb+')
     f2 = open(dataPath + 'dumps_testDict.txt', 'rb+')
     f3 = open(dataPath + 'dumps_userAvg.txt', 'rb+')
-    f4 = open(dataPath + 'userInfo.txt','r+')
+    f4 = open(dataPath + 'userInfo.txt', 'r+')
     start = time.clock()
     userItemRatingDic = pickle.load(f1)
     logging.info('userRating done! costs: '+str(time.clock() - start))
@@ -211,9 +236,9 @@ if __name__ == '__main__':
     userAvg = pickle.load(f3)
     logging.info('userAvg done!')
     for key in userAvg.keys()[:100]:
-        print key,userAvg[key]
+        print key, userAvg[key]
     for line in f4.readlines():
-        [usedid,userRatingCount] = line.strip().split('|')
+        [usedid, userRatingCount] = line.strip().split('|')
         userInfo[int(usedid)] = int(userRatingCount)
     print userInfo[0]
     f1.close()
@@ -229,4 +254,4 @@ if __name__ == '__main__':
     logging.info('ratingDic[0]:'+str(test_userItemRatingDic[0]))
     logging.info('testDic[0]:'+str(testDict[0]))
     logging.info('userAvg[0]:'+str(userAvg[0])+'\n')
-    main(testDict, userAvg, test_userItemRatingDic)
+    main(testDict, userAvg, test_userItemRatingDic, userInfo)

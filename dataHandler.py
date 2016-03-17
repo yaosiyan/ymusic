@@ -13,7 +13,7 @@ testDict = {}  # test_user_track_rating_Dict
 def handler(trainfile, testfile):
     rating_sum = 0.0
     lastUsedid = -1
-    for line in open(trainfile, 'r'):  # 打开指定文件
+    for line in open(trainfile, 'r').readlines():  # 打开指定文件
         (trackid, rating, usedid, ts) = line.strip().split('\t')  # 数据集中每行有4项
         trackid = int(trackid)
         usedid = int(usedid)
@@ -29,7 +29,7 @@ def handler(trainfile, testfile):
             rating_sum = rating
 
     for usedid in userAvg.keys():
-        userAvg[usedid] = float(userAvg[usedid]) / len(userRatingDic[usedid])
+        userAvg[usedid] = float(userAvg[usedid]) / len(userRatingDic[usedid].keys())
         print userAvg[usedid]
 
     for line in open(testfile, 'r'):  # 打开指定文件
@@ -39,7 +39,6 @@ def handler(trainfile, testfile):
         usedid = int(usedid)
         testDict.setdefault(usedid, [])
         testDict[usedid].append(trackid)
-        print usedid,testDict[usedid]
     return userRatingDic, testDict, userAvg
 
 
