@@ -24,7 +24,7 @@ def handler(trainfile, testfile):
         if usedid == lastUsedid:          # [优化]如果已经出现过usedid,累计rating,
             rating_sum += userAvg[usedid] # if usedid in userAvg.keys():rating_sum += userAvg[usedid]
         else:                             # 否则,初始化
-            userAvg[usedid] = rating_sum
+            userAvg[lastUsedid] = rating_sum
             lastUsedid = usedid
             userAvg[usedid] = rating
             rating_sum = rating
