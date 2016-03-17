@@ -23,11 +23,12 @@ def handler(trainfile, testfile):
 
         if usedid == lastUsedid:          # [优化]如果已经出现过usedid,累计rating,
             rating_sum += userAvg[usedid] # if usedid in userAvg.keys():rating_sum += userAvg[usedid]
-        else:                             # 否则,初始化
-            userAvg[lastUsedid] = rating_sum
-            lastUsedid = usedid
-            userAvg[usedid] = rating
-            rating_sum = rating
+        else:
+            # 若usedid改变
+            userAvg[lastUsedid] = rating_sum  # 保存上一个usedid的评分总数
+            lastUsedid = usedid  # 更新lastUsedid
+            userAvg[usedid] = rating  # 初始化userAvg[usedid]
+            rating_sum = rating  # 初始化rating_sum
 
     for usedid in userAvg.keys():
         userAvg[usedid] = float(userAvg[usedid]) / len(userRatingDic[usedid].keys())
