@@ -2,7 +2,7 @@
 
 # head -10000000 mapped_trainIdx1.txt> test_mappedTrainIdx1.txt
 # import logging
-import time
+# import time
 
 userRatingDic = {}  # {user:{track:rating}}
 # track_user_rating = {}
@@ -13,7 +13,7 @@ testDict = {}  # test_user_track_rating_Dict
 def handler(trainfile, testfile):
     rating_sum = 0.0
     lastUsedid = -1
-    for line in open(trainfile, 'r').readlines():  # 打开指定文件
+    for line in open(trainfile, 'r'):  # 打开指定文件
         (trackid, rating, usedid, ts) = line.strip().split('\t')  # 数据集中每行有4项
         trackid = int(trackid)
         usedid = int(usedid)
