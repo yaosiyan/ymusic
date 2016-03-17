@@ -1,9 +1,5 @@
 # coding:utf-8
 
-# head -10000000 mapped_trainIdx1.txt> test_mappedTrainIdx1.txt
-# import logging
-# import time
-
 userRatingDic = {}  # {user:{track:rating}}
 # track_user_rating = {}
 userAvg = {}  # {user:averageRating}
@@ -20,19 +16,17 @@ def handler(trainfile, testfile):
         rating = float(rating)
         userRatingDic.setdefault(usedid, {})  # 设置字典的默认格式,元素是user:{}字典
         userRatingDic[usedid][trackid] = rating
-
         if usedid == lastUsedid:          # [优化]如果已经出现过usedid,累计rating,
-            rating_sum += userAvg[usedid] # if usedid in userAvg.keys():rating_sum += userAvg[usedid]
+            rating_sum += rating  # if usedid in userAvg.keys():rating_sum += userAvg[usedid]
         else:
             # 若usedid改变
             userAvg[lastUsedid] = rating_sum  # 保存上一个usedid的评分总数
             lastUsedid = usedid  # 更新lastUsedid
-            userAvg[usedid] = rating  # 初始化userAvg[usedid]
             rating_sum = rating  # 初始化rating_sum
-
-    for usedid in userAvg.keys():
-        userAvg[usedid] = float(userAvg[usedid]) / len(userRatingDic[usedid].keys())
-        print userAvg[usedid]
+    del userAvg[-1]  # 无语了
+    for userid in userAvg:
+        userAvg[userid] = userAvg[userid] / float(len(userRatingDic[userid]))
+        print userid, userAvg[userid]
 
     for line in open(testfile, 'r'):  # 打开指定文件
         (trackid, rating, usedid, ts) = line.strip().split('\t')  # 数据集中每行有4项
@@ -48,14 +42,12 @@ if __name__ == '__main__':
     from pyspark import SparkContext
 
     sc = SparkContext("local[2]", "dataHandler APP")
-
     dataPath = '/Users/ibunny/Data/Webscope_C15/ydata-ymusic-kddcup-2011-track1/'
     user_item_rating_Dic, testDict, userAvg = handler(
             dataPath + 'mapped_trainIdx1.txt',
-            dataPath + 'mapped_validationIdx1.txt')  # RDD    main(testDict, userAvg, user_item_rating_Dic)
-
+            dataPath + 'mapped_validationIdx1.txt')  # RDD
     try:
-        import cPickle as pickle
+        import cPickle as pickl
     except ImportError:
         import pickle
     f1 = open('dumps_userRatingDic.txt', 'wb+')
