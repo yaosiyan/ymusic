@@ -25,7 +25,7 @@ def handler(trainfile, testfile):
             rating_sum = rating  # 初始化rating_sum
     del userAvg[-1]  # ???无语了,KeyError
     for userid in userAvg:
-        userAvg[userid] = userAvg[userid] / float(len(userRatingDic[userid]))
+        userAvg[userid] /= float(len(userRatingDic[userid]))
         # print userid, userAvg[userid]
 
     for line in open(testfile, 'r'):  # 打开指定文件
@@ -47,7 +47,7 @@ if __name__ == '__main__':
             dataPath + 'mapped_trainIdx1.txt',
             dataPath + 'mapped_validationIdx1.txt')  # RDD
     try:
-        import cPickle as pickl
+        import cPickle as pickle
     except ImportError:
         import pickle
     f1 = open('dumps_userRatingDic.txt', 'wb+')
